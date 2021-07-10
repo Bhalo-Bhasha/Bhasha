@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bhasha-identity
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: bhasha-identity
+  template:
+    metadata:
+      labels:
+        app: bhasha-identity
+        service: bhasha-identity
+    spec:
+      containers:
+        - name: bhasha-identity
+          image: bhasha-identity:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: https
+              containerPort: 443
+              protocol: TCP
+          env:
+            - name: ASPNETCORE_URLS
+              value: https://+:443;http://+:80
+            - name: ASPNETCORE_Database__User
+              valueFrom: 
+                secretKeyRef:
+                  name: mongodb-secrets
+                  key: mongodb-user
+            - name: ASPNETCORE_Database__Password
+              valueFrom: 
+                secretKeyRef:
+                  name: mongodb-secrets
+                  key: mongodb-password
+            - name: ASPNETCORE_Database__Hostname
+              value: mongodb-0.db.default.svc.cluster.local:27017
+            - name: ASPNETCORE_Database__Name
+              value: Identity
